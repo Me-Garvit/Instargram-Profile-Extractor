@@ -1,0 +1,1114 @@
+{
+  "name": "Profile Extractor",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const username = item.json.user_posted;\n  const fullName = item.json.owner_full_name || username;\n\n  return {\n    json: {\n      username: username,\n      profile_name: fullName,\n      profile_url: `https://www.instagram.com/${username}/`\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        528
+      ],
+      "id": "54315493-8ce4-41b5-9752-19304a517070",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        624,
+        640
+      ],
+      "id": "4b07ee42-287d-44cc-bb54-e8cc5a39a217",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODE 1: MAIN PROFILES\nreturn items.map(item => {\n  const d = item.json;\n\n  // Collect all unique URLs from both the primary field and the array\n  let urlList = [];\n  if (d.externalUrls && Array.isArray(d.externalUrls)) {\n    urlList = d.externalUrls.map(u => u.url).filter(Boolean);\n  }\n  if (d.externalUrl && !urlList.includes(d.externalUrl)) {\n    urlList.unshift(d.externalUrl);\n  }\n\n  return {\n    json: {\n      username: d.username,\n      fullName: d.fullName,\n      biography: d.biography,\n      category: d.businessCategoryName,\n      external_urls: urlList.join(', '), // Stores all links in one cell\n      followers: d.followersCount,\n      posts_count: d.postsCount,\n      profile_link: d.url,\n      is_business: d.isBusinessAccount,\n      is_verified: d.isVerified\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        624
+      ],
+      "id": "ab8da15d-6ebd-474d-bb8c-73d555ce6d19",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODE 2: RELATED PROFILES (EXPANSION)\nconst expansionData = [];\n\nfor (const item of items) {\n  const parent = item.json.username;\n  const related = item.json.relatedProfiles || [];\n\n  for (const profile of related) {\n    expansionData.push({\n      json: {\n        found_via_parent: parent,\n        username: profile.username,\n        fullName: profile.fullName,\n        profile_link: `https://www.instagram.com/${profile.username}`\n      }\n    });\n  }\n}\n\nreturn expansionData;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        352
+      ],
+      "id": "3e2673b9-b0ad-406f-8b86-9071c1dd636b",
+      "name": "Related Profiles Function"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c",
+          "mode": "list",
+          "cachedResultName": "Insta N8N Testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 104117805,
+          "mode": "list",
+          "cachedResultName": "Final Scraped Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit#gid=104117805"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Username": "={{ $json.username }}",
+            "Fullname": "={{ $json.fullName }}",
+            "Bio": "={{ $json.biography }}",
+            "Category": "={{ $json.category }}",
+            "External URL": "={{ $json.external_urls }}",
+            "Followers": "={{ $json.followers }}",
+            "PostCount": "={{ $json.posts_count }}"
+          },
+          "matchingColumns": [
+            "Username"
+          ],
+          "schema": [
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fullname",
+              "displayName": "Fullname",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bio",
+              "displayName": "Bio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "External URL",
+              "displayName": "External URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followers",
+              "displayName": "Followers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PostCount",
+              "displayName": "PostCount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        624
+      ],
+      "id": "7918b6cd-8365-44a4-814e-5cec135a64cc",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "f14c9741001854f931068b0b5587d5bc4329d4b2"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.q }}"
+            },
+            {
+              "name": "num",
+              "value": "10"
+            },
+            {
+              "name": "start",
+              "value": "={{ $json.start }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1152,
+        784
+      ],
+      "id": "76c22311-c299-460f-898b-8223252044d3",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nconst POST_REEL_PATTERNS = ['/p/', '/reel/'];\nconst BLOCKED_PATTERNS = ['/explore/', '/stories/', '/tv/', '/highlights/'];\nconst INSTAGRAM_DOMAINS = ['instagram.com', 'www.instagram.com'];\n\nfunction isInstagramPostOrReel(url) {\n  try {\n    const { hostname, pathname } = new URL(url);\n\n    // Must be an Instagram domain\n    if (!INSTAGRAM_DOMAINS.includes(hostname)) return false;\n\n    const cleanPath = pathname.replace(/\\/+$/, ''); // strip trailing slash\n    const segments = cleanPath.split('/').filter(Boolean); // ['dremwedgeworth'] or ['p', 'ABC123']\n\n    // Block explicit bad patterns\n    if (BLOCKED_PATTERNS.some(p => pathname.includes(p))) return false;\n\n    // Profile URLs: instagram.com/username or instagram.com/username/\n    // These have exactly 1 path segment\n    if (segments.length === 1) return false;\n\n    // Must contain a post or reel path segment\n    return POST_REEL_PATTERNS.some(p => pathname.includes(p));\n\n  } catch {\n    return false;\n  }\n}\n\nfor (const item of $input.all()) {\n  const results = item.json.organic || [];\n  for (const result of results) {\n    if (!result.link || !isInstagramPostOrReel(result.link)) continue;\n    output.push({\n      json: {\n        url: result.link,\n        name: result.title,\n        snippet: result.snippet,\n        type: result.link.includes('/reel/') ? 'reel' : 'post'\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        800
+      ],
+      "id": "1ff89709-bfe2-4d3e-a109-834c21045eae",
+      "name": "URL Node"
+    },
+    {
+      "parameters": {
+        "jsCode": "const queries = [\n  // 🧠 CORE: DOCTOR + CREATOR + MONETIZATION\n  `site:instagram.com (\"Dr.\" OR \"MD\" OR \"physician\") (\"online coach\" OR \"coach\" OR \"program\") (\"DM\" OR \"apply\" OR \"link in bio\") (USA OR UK) -hospital -clinic -center -india -indian -job`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"helping\" OR \"I help\") (\"clients\" OR \"patients\") (\"program\" OR \"coaching\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"doctor\" OR \"physician\") (\"online program\" OR \"coaching\") (\"results\" OR \"clients\") (USA OR UK) -hospital -clinic -india -indian`,\n\n  // 💰 INBOUND LEAD SIGNALS (VERY IMPORTANT)\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"DM me\" OR \"message me\") (\"program\" OR \"help you\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"apply now\" OR \"apply below\") (\"program\" OR \"coaching\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"link in bio\") (\"program\" OR \"consult\") (USA OR UK) -hospital -clinic -india -indian`,\n\n  // 🧬 NICHE: HIGH-TICKET HEALTH CREATOR SEGMENTS\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"functional medicine\" OR \"holistic health\") (\"program\" OR \"clients\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"gut health\" OR \"hormone health\") (\"program\" OR \"coaching\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"weight loss\" OR \"fat loss\") (\"program\" OR \"clients\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"pcos\" OR \"thyroid\" OR \"diabetes\") (\"program\" OR \"helping\") (USA OR UK) -hospital -clinic -india -indian`,\n\n  // 🧠 AUTHORITY + PERSONAL BRAND LANGUAGE\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"educating\" OR \"tips\" OR \"content\") (\"program\" OR \"coaching\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"creator\" OR \"educator\") (\"clients\" OR \"program\") (USA OR UK) -hospital -clinic -india -indian`,\n\n  // 🔥 TRANSFORMATION / SOCIAL PROOF (BEST LEADS)\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"client results\" OR \"transformation\") (\"program\" OR \"coaching\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"helped\" OR \"worked with\") (\"clients\" OR \"patients\") (\"program\") (USA OR UK) -hospital -clinic -india -indian`,\n\n  // 🎯 CONSULT-BASED MONETIZATION\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"consultation\" OR \"consult\") (\"book\" OR \"link in bio\") (USA OR UK) -hospital -clinic -india -indian`,\n  `site:instagram.com (\"Dr.\" OR \"MD\") (\"telehealth\" OR \"virtual consult\") (\"book\" OR \"patients\") (USA OR UK) -hospital -clinic -india -indian`\n];\n\nconst output = [];\nfor (const q of queries) {\n  for (let start = 0; start < 50; start += 10) {\n    output.push({ json: { q, start } });\n  }\n}\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        784
+      ],
+      "id": "09666065-00c3-43bb-93f6-3556ec2292b2",
+      "name": "Query"
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "8yz4aO3qlqckRu3nu",
+          "mode": "list",
+          "cachedResultName": "Instagram Reels Scraper (pratikdani/instagram-reels-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/8yz4aO3qlqckRu3nu/input"
+        },
+        "customBody": "={\n    \"url\": \"https://www.instagram.com/p/DWj-FXlj3e-/,https://www.instagram.com/reel/DWNmwNHFYA7/\"\n    \"resultsLimit\" : 1\n} ",
+        "timeout": {}
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        736
+      ],
+      "id": "1df6627d-f43f-44ba-a712-e7d597b916ac",
+      "name": "Profile Extractor",
+      "notesInFlow": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "apifyApi": {
+          "id": "KFoEdqwhr6kgD2bR",
+          "name": "Apify account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "value": "dSCLg0C3YEZ83HzYX",
+          "mode": "list",
+          "cachedResultName": "Instagram Profile Scraper (apify/instagram-profile-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/dSCLg0C3YEZ83HzYX/input"
+        },
+        "customBody": "={\n  \"usernames\": [\n    \"{{ $json.Username }}\"\n  ]\n}",
+        "timeout": {}
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        864,
+        848
+      ],
+      "id": "d655ca85-4791-4e60-aa00-cb6d0445c20f",
+      "name": "Profile Scraper2",
+      "credentials": {
+        "apifyApi": {
+          "id": "KFoEdqwhr6kgD2bR",
+          "name": "Apify account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1njsJZFoScyLHKBIhsiJGHna6pCIRHqurY_E1w0ApyZ8",
+          "mode": "list",
+          "cachedResultName": "Insta_Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1njsJZFoScyLHKBIhsiJGHna6pCIRHqurY_E1w0ApyZ8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2100256504,
+          "mode": "list",
+          "cachedResultName": "Scraped_Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1njsJZFoScyLHKBIhsiJGHna6pCIRHqurY_E1w0ApyZ8/edit#gid=2100256504"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.profile_name }}",
+            "URL": "={{ $json.profile_url }}",
+            "Username": "={{ $json.username }}"
+          },
+          "matchingColumns": [
+            "URL"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        624
+      ],
+      "id": "5d78ae42-939c-4b79-a4e8-56cbf99f3996",
+      "name": "Profiles Links",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "reGe1ST3OBgYZSsZJ",
+          "mode": "list",
+          "cachedResultName": "Instagram Hashtag Scraper (apify/instagram-hashtag-scraper)",
+          "cachedResultUrl": "https://console.apify.com/actors/reGe1ST3OBgYZSsZJ/input"
+        },
+        "timeout": {}
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        208
+      ],
+      "id": "b3fd4d9f-fb6f-4781-8171-f0e45c207f3d",
+      "name": "Run an Actor and get dataset",
+      "credentials": {
+        "apifyApi": {
+          "id": "KFoEdqwhr6kgD2bR",
+          "name": "Apify account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        192
+      ],
+      "id": "90c1e150-efdd-44ae-9909-2e33747bb080",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c",
+          "mode": "list",
+          "cachedResultName": "Insta N8N Testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 225956265,
+          "mode": "list",
+          "cachedResultName": "Serper Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit#gid=225956265"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Profile_Name",
+              "displayName": "Profile_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -64,
+        528
+      ],
+      "id": "6a20f68b-86a2-493e-9ed7-903c43a78c90",
+      "name": "Serper Profiles",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c",
+          "mode": "list",
+          "cachedResultName": "Insta N8N Testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 211917394,
+          "mode": "list",
+          "cachedResultName": "Apify Demo Query",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit#gid=211917394"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Username",
+              "displayName": "Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -304,
+        208
+      ],
+      "id": "aa2d462b-0587-48f1-8a4f-4e18c9728c09",
+      "name": "Apify Hasthag Profiles",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c",
+          "mode": "list",
+          "cachedResultName": "Insta N8N Testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1845905863,
+          "mode": "list",
+          "cachedResultName": "Related Profiles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit#gid=1845905863"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "username": "={{ $json.username }}",
+            "Parent Username": "={{ $json.found_via_parent }}",
+            "link": "={{ $json.profile_link }}"
+          },
+          "matchingColumns": [
+            "username"
+          ],
+          "schema": [
+            {
+              "id": "Parent Username",
+              "displayName": "Parent Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        208
+      ],
+      "id": "2186aba2-d7bc-4c7e-beb9-7606fb9eee69",
+      "name": "Related Profiles",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c",
+          "mode": "list",
+          "cachedResultName": "Insta N8N Testing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1595323580,
+          "mode": "list",
+          "cachedResultName": "Unique Serper",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nkPqcSjWjuOZddEPOMP7tpM1EDJHnFa0de6XP6QaS6c/edit#gid=1595323580"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Snippet",
+              "displayName": "Snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -704,
+        544
+      ],
+      "id": "c093e84f-7fd8-4cb7-bb2c-74de8a3265b4",
+      "name": "Serper Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\nconst seen = new Set(); // 🔥 tracks unique URLs\n\nfor (const item of $input.all()) {\n  const url = item.json.URL;\n\n  if (!url) continue;\n\n  // Normalize URL (important for dedup)\n  const cleanUrl = url.split('?')[0].replace(/\\/+$/, '');\n\n  if (\n    cleanUrl.includes('instagram.com/reel/') ||\n    cleanUrl.includes('instagram.com/p/')\n  ) {\n    // ❌ Skip if already seen\n    if (seen.has(cleanUrl)) continue;\n\n    // ✅ Mark as seen\n    seen.add(cleanUrl);\n\n    output.push({\n      json: {\n        url: cleanUrl,\n        name: item.json.Name || '',\n        snippet: item.json.Snippet || '',\n        type: cleanUrl.includes('/reel/') ? 'reel' : 'post'\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        544
+      ],
+      "id": "23627c90-a965-46b7-8ef1-594997ba472e",
+      "name": "Dedup and Profile Remover"
+    },
+    {
+      "parameters": {
+        "batchSize": 2,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -480,
+        544
+      ],
+      "id": "4a5790fe-93c5-45f8-a3e8-fa4a966ca21e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1iGEIxc0q2COqwTUfLkEKGo3Vsh-EGna9uIskG1fHkqw",
+          "mode": "list",
+          "cachedResultName": "Insta RAW Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iGEIxc0q2COqwTUfLkEKGo3Vsh-EGna9uIskG1fHkqw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1094415949,
+          "mode": "list",
+          "cachedResultName": "n8n-sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iGEIxc0q2COqwTUfLkEKGo3Vsh-EGna9uIskG1fHkqw/edit#gid=1094415949"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "url": "={{ $json.url }}",
+            "name": "={{ $json.name }}",
+            "snippet": "={{ $json.snippet }}"
+          },
+          "matchingColumns": [
+            "url"
+          ],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "snippet",
+              "displayName": "snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1184,
+        544
+      ],
+      "id": "3ee630eb-f45a-4fe2-b270-f6ac0a458228",
+      "name": "Raw Serper Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "p3NkT7qtMfrIkGD8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\nconst output = [];\n\nfor (const item of $input.all()) {\n  const username = item.json.Username?.toLowerCase().trim();\n\n  // Skip if empty\n  if (!username) continue;\n\n  // Dedup check\n  if (!seen.has(username)) {\n    seen.add(username);\n    output.push(item);\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "4fac2ac4-1915-4545-96d2-0d554d385e5b",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        496
+      ],
+      "id": "2320fe3e-9307-4bba-9558-9056eda7e9e9",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Serper Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Related Profiles Function",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile Scraper2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Related Profiles Function": {
+      "main": [
+        [
+          {
+            "node": "Related Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "URL Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URL Node": {
+      "main": [
+        [
+          {
+            "node": "Raw Serper Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile Extractor": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile Scraper2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profiles Links": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet1": {
+      "main": [
+        []
+      ]
+    },
+    "Run an Actor and get dataset": {
+      "main": [
+        [
+          {
+            "node": "Apify Hasthag Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Profiles Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper Profiles": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Apify Hasthag Profiles": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Related Profiles": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Serper Data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedup and Profile Remover": {
+      "main": [
+        [
+          {
+            "node": "Serper Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Profile Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Raw Serper Data": {
+      "main": [
+        [
+          {
+            "node": "Dedup and Profile Remover",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Run an Actor and get dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "35452069-1811-4d8d-a1a5-9d630e24d8c5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "294121f298269ea504a57125548dd16b879aaa2ae046acf3eb8b8ff34984a643"
+  },
+  "id": "qvbbev3cINrfccJ2",
+  "tags": []
+}
